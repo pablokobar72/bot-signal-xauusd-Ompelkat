@@ -1,0 +1,27 @@
+name: xau-alerts
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"     # jalan tiap 10 menit
+  workflow_dispatch:            # bisa dijalankan manual
+
+jobs:
+  run-alert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Run bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python app.py
