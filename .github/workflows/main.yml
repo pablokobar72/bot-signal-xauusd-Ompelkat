@@ -3,7 +3,8 @@ name: xau-alerts
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"  # jalan tiap 30 menit
+    - cron: "*/15 0-16 * * *"   # cek tiap 15 menit, aktif 07:00–23:00 WIB
+    - cron: "0 0 * * *"         # kirim pesan pembuka jam 07:00 WIB (00:00 UTC)
 
 jobs:
   run-alert:
@@ -20,9 +21,20 @@ jobs:
       - name: Install deps
         run: pip install requests
 
-      - name: Run bot
+      - name: Jalankan bot utama
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
           GOLDAPI_KEY: ${{ secrets.GOLDAPI_KEY }}
         run: python app.py
+
+  morning-message:
+    if: github.event.schedule == '0 0 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kirim pesan pembuka
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.CHAT_ID }}" \
+          -d parse_mode="Markdown" \
+          -d text="☀️ *Bot XAUUSD aktif* untuk sesi *07:00–23:00 WIB*.\nSiap cari moment *entry bos* hari ini!"
